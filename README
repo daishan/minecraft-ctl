@@ -1,0 +1,31 @@
+minecraft-ctl
+=============
+
+This is a little wrapper for the minecraft server that makes it possible to
+send commands to a minecraft server from the command line. This is usefull to
+automatically and safely create world backups by sending the save-off command
+before creating the backup and save-on after the backup is finished.
+
+
+instructions
+------------
+
+1. Copy ctloptions.py somewhere (possibly into your minecraft server folder) and
+   edit it as necessary. If it is not in your minecraft server folder be sure to
+   set change the 'dir' setting to point to it.
+
+   $ cp ctloptions.py /somewhere/minecraft/
+
+2. Run minecraft-server.py with the folder where options.py is located as first
+   argument. (or run it from that folder without arguments).
+
+   $ minecraft-server.py /somewhere/minecraft/
+
+3. Send commands to the server using "minecraft-ctl.py [<socket>] <command>". The
+   control socket defaults to /tmp/minecraft-ctl if left out.
+
+   $ minecraft-ctl.py say hello
+
+   or
+
+   $ minecraft-ctl.py /tmp/minecraft-ctl-2 say hello
