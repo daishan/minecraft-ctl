@@ -38,3 +38,14 @@ instructions
    or
 
    $ minecraft-ctl /tmp/minecraft-ctl-2 say hello
+
+
+special commands
+----------------
+
+In addition to the regular minecraft server commands the following special
+commands are interpreted by the wrapper and not passed through to the server:
+
+ * ctl-log <message>
+   Write a message to the minecraft-ctl logfile (ctl.log in the minecraft
+   folder by default)

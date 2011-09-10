@@ -62,12 +62,14 @@ def accept():
 
 def readcmd(fd):
 	conn = clients[fd]
-	data = conn.recv(1024)
-	if not data:
+	cmd = conn.recv(1024)
+	if not cmd:
 		return
-	proc.stdin.write(data)
-	log('> '+data)
-	#conn.send("OK")
+	if cmd.startswith('ctl-log '):
+		log(cmd[8:], type="CTL-LOG")
+	else:
+		proc.stdin.write(cmd)
+		log('> '+cmd)
 	conn.close()
 	poll.unregister(fd)
 	del clients[fd]
