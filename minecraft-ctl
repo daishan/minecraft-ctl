@@ -13,18 +13,18 @@ def main():
 
 	if os.path.exists(sys.argv[1]) and not os.path.isdir(sys.argv[1]) and not os.path.isfile(sys.argv[1]):
 		socketpath = sys.argv[1]
-		cmd = ' '.join(sys.argv[2:])
+		cmd = b' '.join(map(lambda x: x.encode(), sys.argv[2:]))
 	else:
 		socketpath = '/tmp/minecraft-ctl'
-		cmd = ' '.join(sys.argv[1:])
+		cmd = b' '.join(map(lambda x: x.encode(), sys.argv[1:]))
 
 	s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 	s.connect(socketpath)
-	s.send(cmd + "\n")
+	s.send(cmd + b"\n")
 	data = s.recv(1024)
 	s.close()
 	if data:
-		print(data)
+		print(data.decode())
 
 
 main()

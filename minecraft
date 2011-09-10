@@ -72,6 +72,8 @@ def readcmd(fd):
 	if not cmd:
 		return
 
+	cmd = cmd.decode()
+
 	if not proc or proc.poll() != None:
 		log("server is down, ignoring command: "+cmd)
 		return
@@ -80,10 +82,10 @@ def readcmd(fd):
 		log(cmd[8:], type="CTL-LOG")
 	elif cmd == "stop\n":
 		stop_received = True
-		proc.stdin.write(cmd)
+		proc.stdin.write(cmd.encode())
 		log('> '+cmd)
 	else:
-		proc.stdin.write(cmd)
+		proc.stdin.write(cmd.encode())
 		log('> '+cmd)
 
 	conn.close()
@@ -111,7 +113,7 @@ def setup_signals():
 
 def write_pidfile():
 	pidfile = open(options.pidfile, 'w+')
-	pidfile.write(str(os.getpid()))
+	pidfile.write(str(os.getpid()).encode())
 	pidfile.close()
 
 def change_user():
@@ -140,7 +142,7 @@ def shutdown():
 
 	log("shutting down minecraft server...")
 	log("# stop")
-	proc.stdin.write("stop\n")
+	proc.stdin.write("stop\n".encode())
 
 	terminated = False
 	start = time.time()
