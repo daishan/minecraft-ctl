@@ -7,6 +7,7 @@ import select
 import subprocess
 import pwd
 import signal
+import time
 import datetime
 
 do_daemonize = False
@@ -58,7 +59,7 @@ def accept():
 	clients[conn.fileno()] = conn
 	poll.register(conn.fileno(), select.POLLIN | select.POLLERR | select.POLLHUP)
 
-def readctl(fd):
+def readcmd(fd):
 	conn = clients[fd]
 	data = conn.recv(1024)
 	if not data:
@@ -114,6 +115,30 @@ def daemonize():
 
 	write_pidfile()
 
+def shutdown():
+	if not proc or proc.poll() != None:
+		return
+
+	log("shutting down minecraft server...")
+	log("# stop")
+	proc.stdin.write("stop\n")
+
+	terminated = False
+	start = time.time()
+	while True:
+		if proc.poll() != None:
+			log("server is down")
+			break
+		if time.time() - start > 15 and not terminated:
+			log('server did not shut down, sending SIGTERM')
+			proc.terminate()
+			terminated = True
+		if time.time() - start > 20:
+			log('server still running, sending SIGKILL')
+			proc.kill()
+			break
+		time.sleep(0.1)
+
 def mainloop():
 	while True:
 		events = poll.poll(5000) # 5 sec
@@ -122,7 +147,7 @@ def mainloop():
 				if event[0] == listensock.fileno():
 					accept()
 				else:
-					readctl(event[0])
+					readcmd(event[0])
 			elif event[1] == select.POLLHUP:
 				if event[0] == listensock.fileno():
 					raise Exception("wait, wat?")
@@ -144,7 +169,7 @@ def mainloop():
 		# check if server is still running
 		ret = proc.poll()
 		if ret != None:
-			log("server process died, exiting")
+			log("server process died")
 			sys.exit(1)
 
 try:
@@ -161,12 +186,11 @@ except SigTermException:
 except KeyboardInterrupt:
 	log('got SIGINT, shutting down')
 finally:
-	if proc and proc.poll() == None:
-		log("shutting down minecraft server")
-		proc.terminate()
+	shutdown()
 	if listensock:
 		listensock.close()
 	try:
 		os.remove(options.socket)
 	except OSError:
 		pass
+	log('exiting')
