@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import os
 import sys
 import socket
@@ -18,7 +20,7 @@ for arg in sys.argv[1:]:
 	elif os.path.isdir(arg):
 		os.chdir(arg)
 	else:
-		print arg, 'is not a directory'
+		print(arg, 'is not a directory')
 		sys.exit(1)
 
 sys.path.insert(0, '')
@@ -40,7 +42,7 @@ class SigTermException(Exception):
 def log(msg, type="CTL"):
 	msg = msg.strip()
 	if not do_daemonize:
-		print msg
+		print(msg)
 	t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 	logfile.write("%s [%s] %s\n" % (t, type, msg))
 	logfile.flush()
