@@ -16,10 +16,10 @@ instructions
 
    $ cp ctloptions.py /somewhere/minecraft/
 
-2. Run minecraft-server with the folder where options.py is located as first
+2. Run minecraft with the folder where options.py is located as first
    argument. (or run it from that folder without arguments).
 
-   $ minecraft-server /somewhere/minecraft/
+   $ minecraft /somewhere/minecraft/
 
 3. Send commands to the server using "minecraft-ctl [<socket>] <command>". The
    control socket defaults to /tmp/minecraft-ctl if left out.
