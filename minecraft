@@ -154,7 +154,7 @@ try:
 except SigTermException:
 	log('got SIGTERM, shutting down')
 except KeyboardInterrupt:
-	log('got SIGTINT, shutting down')
+	log('got SIGINT, shutting down')
 finally:
 	if proc and proc.poll() == None:
 		log("shutting down minecraft server")
