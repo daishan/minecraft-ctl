@@ -6,12 +6,18 @@ import socket
 import select
 import subprocess
 import pwd
+import signal
 
-if len(sys.argv) >= 2:
-	if not os.path.isdir(sys.argv[1]):
-		print sys.argv[1], 'is not a directory'
+do_daemonize = False
+
+for arg in sys.argv[1:]:
+	if arg == '--daemonize':
+		do_daemonize = True
+	elif os.path.isdir(arg):
+		os.chdir(arg)
+	else:
+		print arg, 'is not a directory'
 		sys.exit(1)
-	os.chdir(sys.argv[1])
 
 sys.path.insert(0, '')
 import ctloptions as options
@@ -23,8 +29,13 @@ clients = {}
 proc = None
 logfile = None
 
+class SigTermException(Exception):
+	pass
+
 
 def log(msg):
+	if not do_daemonize:
+		print msg
 	logfile.write("ctl: %s\n" % msg)
 
 def listen():
@@ -68,14 +79,20 @@ def open_log():
 	global logfile
 	logfile = open(options.logfile, 'a+')
 
+def setup_signals():
+	def handler(signum, frame):
+		raise SigTermException
+	signal.signal(signal.SIGTERM, handler)
+
 def write_pidfile():
 	pidfile = open(options.pidfile, 'w+')
 	pidfile.write(str(os.getpid()))
 	pidfile.close()
 
 def change_user():
-	uid = pwd.getpwnam(options.user)[2]
-	os.setuid(uid)
+	if os.getuid() == 0:
+		uid = pwd.getpwnam(options.user)[2]
+		os.setuid(uid)
 
 def daemonize():
 	if os.fork() != 0:
@@ -91,7 +108,6 @@ def daemonize():
 	sys.stdin = open('/dev/null', 'r')
 
 	write_pidfile()
-	change_user()
 
 def mainloop():
 	while True:
@@ -127,12 +143,25 @@ def mainloop():
 			sys.exit(1)
 
 try:
+	setup_signals()
 	open_log()
-	daemonize()
+	if do_daemonize:
+		daemonize()
+	change_user()
 	start_minecraft()
 	listen()
 	mainloop()
+except SigTermException:
+	log('got SIGTERM, shutting down')
+except KeyboardInterrupt:
+	log('got SIGTINT, shutting down')
 finally:
 	if proc and proc.poll() == None:
-		print "shutting down minecraft server..."
+		log("shutting down minecraft server")
 		proc.terminate()
+	if listensock:
+		listensock.close()
+	try:
+		os.remove(options.socket)
+	except OSError:
+		pass
