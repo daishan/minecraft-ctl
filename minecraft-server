@@ -86,7 +86,7 @@ def mainloop():
 			else:
 				print "unhandled poll event", repr(event)
 				raise Exception()
-			
+
 		# check if server is still running
 		ret = proc.poll()
 		if ret != None:
