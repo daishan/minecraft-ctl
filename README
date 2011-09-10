@@ -2,9 +2,10 @@ minecraft-ctl
 =============
 
 This is a little wrapper for the minecraft server that makes it possible to
-send commands to a minecraft server from the command line. This is usefull to
-automatically and safely create world backups by sending the save-off command
-before creating the backup and save-on after the backup is finished.
+send commands to a minecraft server from the command line. This is usefull in
+particular to automatically and safely create world backups by sending the
+save-off command before creating the backup and save-on after the backup is
+finished.
 
 
 instructions
@@ -20,6 +21,14 @@ instructions
    argument. (or run it from that folder without arguments).
 
    $ minecraft /somewhere/minecraft/
+
+   Alternativly copy the initscript to /etc/init.d, edit it to the correct paths
+   and start it. Only tested on Debian.
+
+   $ cp initscript /etc/init.d/minecraft
+   $ vim /etc/init.d/minecraft # fix paths
+   $ update-rc.d minecraft defaults
+   $ /etc/init.d/minecraft start
 
 3. Send commands to the server using "minecraft-ctl [<socket>] <command>". The
    control socket defaults to /tmp/minecraft-ctl if left out.
