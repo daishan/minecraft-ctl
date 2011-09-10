@@ -7,6 +7,7 @@ import select
 import subprocess
 import pwd
 import signal
+import datetime
 
 do_daemonize = False
 
@@ -33,10 +34,13 @@ class SigTermException(Exception):
 	pass
 
 
-def log(msg):
+def log(msg, type="CTL"):
+	msg = msg.strip()
 	if not do_daemonize:
 		print msg
-	logfile.write("ctl: %s\n" % msg)
+	t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+	logfile.write("%s [%s] %s\n" % (t, type, msg))
+	logfile.flush()
 
 def listen():
 	global listensock
@@ -60,6 +64,7 @@ def readctl(fd):
 	if not data:
 		return
 	proc.stdin.write(data)
+	log('> '+data)
 	#conn.send("OK")
 	conn.close()
 	poll.unregister(fd)
