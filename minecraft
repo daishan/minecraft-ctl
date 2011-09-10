@@ -5,6 +5,7 @@ import sys
 import socket
 import select
 import subprocess
+import pwd
 
 if len(sys.argv) >= 2:
 	if not os.path.isdir(sys.argv[1]):
@@ -20,7 +21,11 @@ listensock = None
 poll = select.poll()
 clients = {}
 proc = None
+logfile = None
 
+
+def log(msg):
+	logfile.write("ctl: %s\n" % msg)
 
 def listen():
 	global listensock
@@ -53,12 +58,40 @@ def readctl(fd):
 def start_minecraft():
 	global proc
 	os.chdir(options.dir)
-	logfile = open(options.logfile, 'a+')
 	cmd = [options.java]
 	cmd.extend(options.jvmargs)
 	cmd.extend(["-jar", options.serverjar])
 	cmd.extend(options.serverargs)
 	proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=logfile, stderr=subprocess.STDOUT)
+
+def open_log():
+	global logfile
+	logfile = open(options.logfile, 'a+')
+
+def write_pidfile():
+	pidfile = open(options.pidfile, 'w+')
+	pidfile.write(str(os.getpid()))
+	pidfile.close()
+
+def change_user():
+	uid = pwd.getpwnam(options.user)[2]
+	os.setuid(uid)
+
+def daemonize():
+	if os.fork() != 0:
+		os._exit(0)
+
+	os.setsid()
+
+	if os.fork() != 0:
+		os._exit(0)
+
+	sys.stdout = logfile
+	sys.stderr = logfile
+	sys.stdin = open('/dev/null', 'r')
+
+	write_pidfile()
+	change_user()
 
 def mainloop():
 	while True:
@@ -73,27 +106,29 @@ def mainloop():
 				if event[0] == listensock.fileno():
 					raise Exception("wait, wat?")
 				else:
-					print "closing connection", repr(event)
+					log("closing connection" + repr(event))
 					clients[event[0]].close()
 					poll.unregister(event[0])
 			elif event[1] == select.POLLERR or event[1] == select.POLLNVAL:
 				if event[0] == listensock.fileno():
 					raise Exception("wait, wat?")
 				else:
-					print "connection error..."
+					log("connection error...")
 					clients[event[0]].close()
 					poll.unregister(event[0])
 			else:
-				print "unhandled poll event", repr(event)
+				log("unhandled poll event" + repr(event))
 				raise Exception()
 
 		# check if server is still running
 		ret = proc.poll()
 		if ret != None:
-			print "server process died, exiting"
+			log("server process died, exiting")
 			sys.exit(1)
 
 try:
+	open_log()
+	daemonize()
 	start_minecraft()
 	listen()
 	mainloop()
