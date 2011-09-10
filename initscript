@@ -16,7 +16,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Minecraft"
 NAME=minecraft
-DAEMON=/home/daishan/minecraft-ctl/$NAME
+DAEMON=/usr/local/bin/$NAME
 DAEMON_ARGS="--daemonize /opt/minecraft/"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
