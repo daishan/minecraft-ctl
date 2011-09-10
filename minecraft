@@ -31,6 +31,7 @@ clients = {}
 proc = None
 logfile = None
 
+
 class SigTermException(Exception):
 	pass
 
@@ -74,6 +75,7 @@ def readcmd(fd):
 
 def start_minecraft():
 	global proc
+	log('starting minecraft server')
 	os.chdir(options.dir)
 	cmd = [options.java]
 	cmd.extend(options.jvmargs)
