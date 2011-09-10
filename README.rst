@@ -15,29 +15,29 @@ instructions
    edit it as necessary. If it is not in your minecraft server folder be sure to
    set change the 'dir' setting to point to it. ::
 
-       $ cp ctloptions.py /somewhere/minecraft/
+       cp ctloptions.py /somewhere/minecraft/
 
 2. Run minecraft with the folder where options.py is located as first
    argument. (or run it from that folder without arguments). ::
 
-       $ minecraft /somewhere/minecraft/
+       minecraft /somewhere/minecraft/
 
    Alternativly copy the initscript to /etc/init.d, edit it to the correct paths
    and start it. Only tested on Debian. ::
 
-       $ cp initscript /etc/init.d/minecraft
-       $ vim /etc/init.d/minecraft # fix paths
-       $ update-rc.d minecraft defaults
-       $ /etc/init.d/minecraft start
+       cp initscript /etc/init.d/minecraft
+       vim /etc/init.d/minecraft # fix paths
+       update-rc.d minecraft defaults
+       /etc/init.d/minecraft start
 
 3. Send commands to the server using "minecraft-ctl [<socket>] <command>". The
    control socket defaults to /tmp/minecraft-ctl if left out. ::
 
-       $ minecraft-ctl say hello
+       minecraft-ctl say hello
 
    or ::
 
-       $ minecraft-ctl /tmp/minecraft-ctl-2 say hello
+       minecraft-ctl /tmp/minecraft-ctl-2 say hello
 
 
 special commands
