@@ -30,6 +30,7 @@ poll = select.poll()
 clients = {}
 proc = None
 logfile = None
+stop_received = False
 
 
 class SigTermException(Exception):
@@ -61,19 +62,31 @@ def accept():
 	poll.register(conn.fileno(), select.POLLIN | select.POLLERR | select.POLLHUP)
 
 def readcmd(fd):
+	global stop_received
+
+
 	conn = clients[fd]
 	cmd = conn.recv(1024)
 	if not cmd:
 		return
+
+	if not proc or proc.poll() != None:
+		log("server is down, ignoring command: "+cmd)
+		return
+
 	if cmd.startswith('ctl-log '):
 		log(cmd[8:], type="CTL-LOG")
+	elif cmd == "stop\n":
+		stop_received = True
+		proc.stdin.write(cmd)
+		log('> '+cmd)
 	else:
 		proc.stdin.write(cmd)
 		log('> '+cmd)
+
 	conn.close()
 	poll.unregister(fd)
 	del clients[fd]
-	return
 
 def start_minecraft():
 	global proc
@@ -173,8 +186,14 @@ def mainloop():
 		# check if server is still running
 		ret = proc.poll()
 		if ret != None:
-			log("server process died")
-			sys.exit(1)
+			if stop_received:
+				log("server process stopped")
+				sys.exit(1)
+			else:
+				log("server process died unexpectedly, waiting 10 sec...")
+				time.sleep(10)
+				log("restarting server")
+				start_minecraft()
 
 try:
 	setup_signals()
