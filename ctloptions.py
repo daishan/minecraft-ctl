@@ -4,6 +4,6 @@ serverjar="minecraft_server.jar"
 serverargs=["nogui"]
 java="/usr/bin/java"
 jvmargs=["-Xmx1024M", "-Xms512M"]
-logfile="stdout.log"
+logfile="ctl.log"
 pidfile="/var/run/minecraft.pid"
 user="minecraft"
