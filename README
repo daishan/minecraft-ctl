@@ -2,7 +2,7 @@ minecraft-ctl
 =============
 
 This is a little wrapper for the minecraft server that makes it possible to
-send commands to a minecraft server from the command line. This is usefull in
+send commands to a minecraft server from the command line. This is useful in
 particular to automatically and safely create world backups by sending the
 save-off command before creating the backup and save-on after the backup is
 finished.
