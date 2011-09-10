@@ -8,7 +8,7 @@ import sys
 
 def main():
 	if len(sys.argv) < 2:
-		print("missing arguments")
+		print("ERROR: missing arguments")
 		sys.exit(1)
 
 	if os.path.exists(sys.argv[1]) and not os.path.isdir(sys.argv[1]) and not os.path.isfile(sys.argv[1]):
@@ -18,9 +18,20 @@ def main():
 		socketpath = '/tmp/minecraft-ctl'
 		cmd = b' '.join(map(lambda x: x.encode(), sys.argv[1:]))
 
+	if not os.path.exists(socketpath):
+		print("ERROR: %s is missing - is the minecraft server running?" % socketpath)
+		sys.exit(1)
+
 	s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-	s.connect(socketpath)
+
+	try:
+		s.connect(socketpath)
+	except socket.error:
+		print("ERROR: could not connect to %s - is the minecraft server running?" % socketpath)
+		sys.exit(1)
+
 	s.send(cmd + b"\n")
+
 	data = s.recv(1024)
 	s.close()
 	if data:
