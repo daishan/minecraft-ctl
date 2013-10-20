@@ -3,8 +3,10 @@
 import os
 import socket
 import sys
+import argparse
 
 socketpath = '/tmp/minecraft-ctl'
+quiet = False
 
 #def deadcode():
 	#if os.path.exists(sys.argv[1]) and not os.path.isdir(sys.argv[1]) and not os.path.isfile(sys.argv[1]):
@@ -17,8 +19,8 @@ socketpath = '/tmp/minecraft-ctl'
 class SocketError(Exception):
 	pass
 
-def get_command():
-	return b' '.join(map(lambda x: x.encode(), sys.argv[1:]))
+def get_command(args):
+	return b' '.join(map(lambda x: x.encode(), args.command))
 
 def check_socket():
 	if not os.path.exists(socketpath):
@@ -32,17 +34,18 @@ def connect():
 		raise SocketError("could not connect to %s - is the minecraft server running?" % socketpath)
 	return s
 
-def send_command():
+def send_command(command):
 	try:
 		check_socket()
 		sock = connect()
-		sock.send(get_command() + b"\n")
+		sock.send(command + b"\n")
 		data = sock.recv(1024)
 		sock.close()
 		if data:
 			print(data.decode())
 	except SocketError as ex:
-		print('Error: '+str(ex))
+		if not quiet:
+			print('Error: '+str(ex))
 		sys.exit(1)
 
 def check_server():
@@ -54,10 +57,17 @@ def check_server():
 		sys.exit(1)
 
 if __name__ == '__main__':
-	if len(sys.argv) < 2:
-		print("ERROR: missing arguments")
+	parser = argparse.ArgumentParser()
+	parser.add_argument('command', metavar='COMMAND', type=str, nargs='*', help='command to execute')
+	parser.add_argument('--mode', default='execute', help='either "check" or "execute"')
+	parser.add_argument('-q', '--quiet', action='store_true')
+	args = parser.parse_args()
+	quiet = args.quiet
+
+	if args.mode == 'command' and not args.command:
+		print("ERROR: missing command")
 		sys.exit(1)
-	if (sys.argv[1] == '--check-server'):
+	if  args.mode == 'check':
 		check_server()
 	else:
-		send_command()
+		send_command(get_command(args))
