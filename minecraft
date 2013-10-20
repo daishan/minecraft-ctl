@@ -164,19 +164,19 @@ def mainloop():
 	while True:
 		events = poll.poll(5000) # 5 sec
 		for event in events:
-			if event[1] == select.POLLIN:
+			if event[1] & select.POLLIN:
 				if event[0] == listensock.fileno():
 					accept()
 				else:
 					readcmd(event[0])
-			elif event[1] == select.POLLHUP:
+			elif event[1] & select.POLLHUP:
 				if event[0] == listensock.fileno():
 					raise Exception("wait, wat?")
 				else:
 					log("closing connection" + repr(event))
 					clients[event[0]].close()
 					poll.unregister(event[0])
-			elif event[1] == select.POLLERR or event[1] == select.POLLNVAL:
+			elif event[1] & select.POLLERR or event[1] & select.POLLNVAL:
 				if event[0] == listensock.fileno():
 					raise Exception("wait, wat?")
 				else:
