@@ -1,41 +1,63 @@
-#!/usr/bin/env python
-
-from __future__ import print_function
+#!/usr/bin/env python3
 
 import os
 import socket
 import sys
 
-def main():
-	if len(sys.argv) < 2:
-		print("ERROR: missing arguments")
-		sys.exit(1)
+socketpath = '/tmp/minecraft-ctl'
 
-	if os.path.exists(sys.argv[1]) and not os.path.isdir(sys.argv[1]) and not os.path.isfile(sys.argv[1]):
-		socketpath = sys.argv[1]
-		cmd = b' '.join(map(lambda x: x.encode(), sys.argv[2:]))
-	else:
-		socketpath = '/tmp/minecraft-ctl'
-		cmd = b' '.join(map(lambda x: x.encode(), sys.argv[1:]))
+#def deadcode():
+	#if os.path.exists(sys.argv[1]) and not os.path.isdir(sys.argv[1]) and not os.path.isfile(sys.argv[1]):
+		#socketpath = sys.argv[1]
+		#cmd = b' '.join(map(lambda x: x.encode(), sys.argv[2:]))
+	#else:
+		#socketpath = '/tmp/minecraft-ctl'
+		#cmd = b' '.join(map(lambda x: x.encode(), sys.argv[1:]))
 
+class SocketError(Exception):
+	pass
+
+def get_command():
+	return b' '.join(map(lambda x: x.encode(), sys.argv[1:]))
+
+def check_socket():
 	if not os.path.exists(socketpath):
-		print("ERROR: %s is missing - is the minecraft server running?" % socketpath)
-		sys.exit(1)
+		raise SocketError("%s is missing - is the minecraft server running?" % socketpath)
 
+def connect():
 	s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-
 	try:
 		s.connect(socketpath)
 	except socket.error:
-		print("ERROR: could not connect to %s - is the minecraft server running?" % socketpath)
+		raise SocketError("could not connect to %s - is the minecraft server running?" % socketpath)
+	return s
+
+def send_command():
+	try:
+		check_socket()
+		sock = connect()
+		sock.send(get_command() + b"\n")
+		data = sock.recv(1024)
+		sock.close()
+		if data:
+			print(data.decode())
+	except SocketError as ex:
+		print('Error: '+str(ex))
 		sys.exit(1)
 
-	s.send(cmd + b"\n")
+def check_server():
+	try:
+		check_socket()
+		sock = connect()
+		sys.exit(0)
+	except SocketError:
+		sys.exit(1)
 
-	data = s.recv(1024)
-	s.close()
-	if data:
-		print(data.decode())
-
-
-main()
+if __name__ == '__main__':
+	if len(sys.argv) < 2:
+		print("ERROR: missing arguments")
+		sys.exit(1)
+	if (sys.argv[1] == '--check-server'):
+		check_server()
+	else:
+		send_command()
